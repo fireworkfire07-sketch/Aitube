@@ -1,27 +1,16 @@
-<input id="prompt" placeholder="Video fikrini yaz..." style="width:300px; padding:10px;">
-<br><br>
-
-<button onclick="createVideo()">Video Oluştur</button>
-
-<p id="result"></p>
-
 <script>
-async function createVideo() {
+function createVideo() {
   const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
 
-  result.innerText = "Video talebi gönderiliyor...";
+  if (!prompt) {
+    alert("Lütfen video fikrini yaz.");
+    return;
+  }
 
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ prompt })
-  });
+  const phone = "905XXXXXXXXX"; 
+  const message = "Merhaba, AI video siparişi vermek istiyorum. Video fikrim: " + prompt;
 
-  const data = await response.json();
-
-  result.innerText = data.message + ": " + data.prompt;
+  window.location.href =
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
 }
 </script>
