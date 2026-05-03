@@ -1,5 +1,6 @@
 export default async function handler(req, res) {
   const prompt = req.body.prompt;
+  console.log("TOKEN:", process.env.REPLICATE_API_TOKEN);
 
   const response = await fetch("https://api.replicate.com/v1/predictions", {
     method: "POST",
