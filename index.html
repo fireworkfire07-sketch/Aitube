@@ -1,31 +1,27 @@
-<button onclick="window.location.href='https://wa.me/905528260451text=AI%20video%20sipari%C5%9Fi%20vermek%20istiyorum'">
-  Video Oluştur (49₺)
-</button>
-<p>⏱️ Teslim: 24 saat</p>
-<p>🎯 TikTok / Reels uyumlu</p>
-<p>💬 Sorular için WhatsApp</p>
-<p style="font-size:12px; color:gray;">Örnek video görmek için mesaj at.</p>
-AI ile kendi markanın ilk versiyonunu çek🎬
-49₺ / 24 saat teslim
-DM veya instagramdan facebookta osman kılınçud_man_07yaz👇
-[site linkin]<input id="prompt" placeholder="Video fikrini yaz..." />
+<input id="prompt" placeholder="Video fikrini yaz..." style="width:300px; padding:10px;">
+<br><br>
 
 <button onclick="createVideo()">Video Oluştur</button>
+
+<p id="result"></p>
 
 <script>
 async function createVideo() {
   const prompt = document.getElementById("prompt").value;
+  const result = document.getElementById("result");
 
-  alert("Video oluşturuluyor: " + prompt);
+  result.innerText = "Video talebi gönderiliyor...";
 
-  // Şimdilik demo (gerçek API bağlanacak)
+  const response = await fetch("/api/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await response.json();
+
+  result.innerText = data.message + ": " + data.prompt;
 }
-</script>fetch("API_LINK", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer API_KEY"
-  },
-  body: JSON.stringify({
-    prompt: prompt
-  })
-})
+</script>
