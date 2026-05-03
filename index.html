@@ -1,16 +1,39 @@
-<script>
-function createVideo() {
-  const prompt = document.getElementById("prompt").value;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Aitube</title>
+</head>
+<body style="font-family: Arial; text-align:center; padding:50px;">
 
-  if (!prompt) {
-    alert("Lütfen video fikrini yaz.");
-    return;
-  }
+  <h1>Aitube AI Video</h1>
 
-  const phone = "+905528260451"; 
-  const message = "Merhaba, AI video siparişi vermek istiyorum. Video fikrim: " + prompt;
+  <input id="prompt" placeholder="Video fikri yaz..." style="padding:10px; width:250px;" />
+  
+  <br><br>
 
-  window.location.href =
-    "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
-}
-</script>
+  <button onclick="generate()" style="padding:10px 20px;">
+    Video Oluştur
+  </button>
+
+  <p id="result"></p>
+
+  <script>
+    async function generate() {
+      const prompt = document.getElementById("prompt").value;
+
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+
+      document.getElementById("result").innerText = JSON.stringify(data);
+    }
+  </script>
+
+</body>
+</html>
