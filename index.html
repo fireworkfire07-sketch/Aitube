@@ -8,4 +8,24 @@
 AI ile kendi markanın ilk versiyonunu çek🎬
 49₺ / 24 saat teslim
 DM veya instagramdan facebookta osman kılınçud_man_07yaz👇
-[site linkin]
+[site linkin]<input id="prompt" placeholder="Video fikrini yaz..." />
+
+<button onclick="createVideo()">Video Oluştur</button>
+
+<script>
+async function createVideo() {
+  const prompt = document.getElementById("prompt").value;
+
+  alert("Video oluşturuluyor: " + prompt);
+
+  // Şimdilik demo (gerçek API bağlanacak)
+}
+</script>fetch("API_LINK", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer API_KEY"
+  },
+  body: JSON.stringify({
+    prompt: prompt
+  })
+})
