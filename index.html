@@ -21,7 +21,7 @@
     async function generate() {
       const prompt = document.getElementById("prompt").value;
 
-      const res = await fetch("/api/generate", {
+      const res = await fetch("https://ai-backend-one-theta.vercel.app/api/brain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
