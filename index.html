@@ -1,39 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <title>Aitube</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AiTube Studio</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:radial-gradient(circle at top,#312e81,#020617 55%);
+  color:white;
+}
+.app{max-width:980px;margin:auto;padding:18px}
+.hero{
+  padding:24px;
+  border-radius:24px;
+  background:linear-gradient(135deg,#111827,#1e1b4b);
+  border:1px solid #4338ca;
+  box-shadow:0 20px 60px #0008;
+  margin-bottom:16px;
+}
+h1{margin:0;font-size:34px}
+p{color:#cbd5e1}
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+.card{
+  background:#0f172aee;
+  border:1px solid #334155;
+  border-radius:20px;
+  padding:16px;
+}
+input,select,textarea{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #475569;
+  background:#020617;
+  color:white;
+  margin:7px 0;
+  font-size:15px;
+}
+button{
+  width:100%;
+  border:0;
+  padding:15px;
+  border-radius:16px;
+  margin-top:8px;
+  background:linear-gradient(135deg,#8b5cf6,#ec4899);
+  color:white;
+  font-weight:800;
+  font-size:16px;
+}
+button.blue{background:linear-gradient(135deg,#2563eb,#06b6d4)}
+button.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
+.output{
+  background:#020617;
+  border:1px solid #334155;
+  border-radius:16px;
+  padding:15px;
+  white-space:pre-wrap;
+  min-height:260px;
+  line-height:1.45;
+}
+.badge{
+  display:inline-block;
+  padding:7px 11px;
+  border-radius:999px;
+  background:#312e81;
+  margin:8px 5px 0 0;
+  font-size:12px;
+}
+@media(min-width:800px){
+  .grid{grid-template-columns:380px 1fr}
+}
+</style>
 </head>
-<body style="font-family: Arial; text-align:center; padding:50px;">
+<body>
+<div class="app">
 
-  <h1>Aitube AI Video</h1>
+  <div class="hero">
+    <h1>AiTube Studio</h1>
+    <p>AI anime kısa film, viral video ve içerik para kazanma paneli.</p>
+    <span class="badge">Anime Shorts</span>
+    <span class="badge">TikTok</span>
+    <span class="badge">YouTube Shorts</span>
+    <span class="badge">Reels</span>
+  </div>
 
-  <input id="prompt" placeholder="Video fikri yaz..." style="padding:10px; width:250px;" />
-  
-  <br><br>
+  <div class="grid">
 
-  <button onclick="generate()" style="padding:10px 20px;">
-    Video Oluştur
-  </button>
+    <div class="card">
+      <h2>Video Üret</h2>
 
-  <p id="result"></p>
+      <input id="idea" placeholder="Örnek: yalnız robot, terk edilmiş otel, kayıp çocuk">
 
-  <script>
-    async function generate() {
-      const prompt = document.getElementById("prompt").value;
+      <select id="type">
+        <option>Anime kısa film</option>
+        <option>Karanlık gizem</option>
+        <option>Duygusal hikaye</option>
+        <option>Cyberpunk evren</option>
+        <option>Viral TikTok teorisi</option>
+      </select>
 
-      const res = await fetch("https://ai-backend-one-theta.vercel.app/api/brain", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ prompt })
-      });
+      <select id="length">
+        <option>30 saniye</option>
+        <option>45 saniye</option>
+        <option>60 saniye</option>
+      </select>
 
-      const data = await res.json();
+      <button onclick="produce()">AiTube İçerik Üret</button>
+      <button class="blue" onclick="copyResult()">Çıktıyı Kopyala</button>
+      <button class="green" onclick="speakResult()">Sesli Oku</button>
+    </div>
 
-      document.getElementById("result").innerText = JSON.stringify(data);
-    }
-  </script>
+    <div class="card">
+      <h2>Çıktı</h2>
+      <div id="out" class="output">Hazır. Fikir yaz ve üret.</div>
+    </div>
 
+  </div>
+</div>
+
+<script>
+function produce(){
+  const idea = document.getElementById("idea").value || "yalnız bir robot";
+  const type = document.getElementById("type").value;
+  const length = document.getElementById("length").value;
+
+  const text = `AITUBE VİDEO PLANI
+
+KONU:
+${idea}
+
+FORMAT:
+${type}
+
+SÜRE:
+${length}
+
+VİDEO BAŞLIĞI:
+${idea} hakkında 60 saniyelik anime hikayesi
+
+HOOK / İLK CÜMLE:
+Kimse onun gerçek olmadığını bilmiyordu... ta ki gece yarısı konuşmaya başlayana kadar.
+
+KISA SENARYO:
+Bir karakter, sessiz ve karanlık bir dünyada yalnız yaşar.
+Her gün aynı döngüyü tekrarlar.
+Bir gece, geçmişinden gelen gizemli bir ses onu takip etmeye başlar.
+Başta korkar.
+Sonra bu sesin aslında kendi kaybolmuş cesareti olduğunu anlar.
+Finalde karakter değişir ve yeni bir yolculuğa çıkar.
+
+SAHNE PLANI:
+1. Karanlık şehir / boş otel / sisli sokak.
+2. Ana karakter yalnız yürür.
+3. Gizemli ışık belirir.
+4. Duygusal yüzleşme.
+5. Güçlü final bakışı.
+6. Ekranda kısa vurucu cümle.
+
+GÖRSEL PROMPT:
+Cinematic anime style, dramatic lighting, emotional character, detailed background, dark atmosphere, soft shadows, high quality, ${idea}
+
+VİDEO PROMPT:
+Anime short film, slow cinematic camera movement, emotional atmosphere, dramatic reveal, detailed scene, ${idea}
+
+SES METNİ:
+Bazı hikayeler karanlıkta başlar.
+Çünkü insan en çok sessizlikte kendini duyar.
+O gece her şey değişti.
+Ve artık hiçbir şey eskisi gibi olmayacaktı.
+
+TİKTOK / REELS AÇIKLAMA:
+Bu hikayenin devamı gelsin mi?
+
+HASHTAG:
+#aitube #anime #aivideo #shortfilm #yapayzeka #reels #tiktok
+
+PARA KAZANMA PLANI:
+1. Bu formatta günde 3 video üret.
+2. En çok izlenen karakteri seri yap.
+3. 10 bölüm sonra “devam bölümü” sistemi kur.
+4. Shopier üzerinden özel AI video paketi sat.
+5. Otellere, markalara ve kişilere kısa AI reklam videosu hizmeti ver.
+
+BUGÜNKÜ GÖREV:
+Bu fikri ilk video olarak üret, paylaş ve izlenme oranını not al.`;
+
+  document.getElementById("out").textContent = text;
+}
+
+function copyResult(){
+  navigator.clipboard.writeText(document.getElementById("out").textContent);
+  alert("Kopyalandı");
+}
+
+function speakResult(){
+  const msg = new SpeechSynthesisUtterance(document.getElementById("out").textContent);
+  msg.lang = "tr-TR";
+  speechSynthesis.cancel();
+  speechSynthesis.speak(msg);
+}
+</script>
 </body>
 </html>
