@@ -53,13 +53,14 @@ button{
 }
 button.blue{background:linear-gradient(135deg,#2563eb,#06b6d4)}
 button.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
+button.red{background:linear-gradient(135deg,#dc2626,#f97316)}
 .output{
   background:#020617;
   border:1px solid #334155;
   border-radius:16px;
   padding:15px;
   white-space:pre-wrap;
-  min-height:260px;
+  min-height:320px;
   line-height:1.45;
 }
 .badge{
@@ -80,127 +81,129 @@ button.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
 
   <div class="hero">
     <h1>AiTube Studio</h1>
-    <p>AI anime kısa film, viral video ve içerik para kazanma paneli.</p>
+    <p>Sesli konuşan, gerçek AI cevap veren anime kısa film ve viral içerik üretim paneli.</p>
+    <span class="badge">OpenAI Bağlı</span>
+    <span class="badge">Sesli Chat</span>
     <span class="badge">Anime Shorts</span>
-    <span class="badge">TikTok</span>
-    <span class="badge">YouTube Shorts</span>
-    <span class="badge">Reels</span>
+    <span class="badge">Para Kazanma</span>
   </div>
 
   <div class="grid">
 
     <div class="card">
-      <h2>Video Üret</h2>
+      <h2>AiTube Komut</h2>
 
-      <input id="idea" placeholder="Örnek: yalnız robot, terk edilmiş otel, kayıp çocuk">
+      <textarea id="message" rows="6" placeholder="Örnek: Bana 30 saniyelik karanlık anime kısa film fikri üret. Başlık, senaryo, prompt ve hashtag ver."></textarea>
 
-      <select id="type">
-        <option>Anime kısa film</option>
-        <option>Karanlık gizem</option>
-        <option>Duygusal hikaye</option>
-        <option>Cyberpunk evren</option>
-        <option>Viral TikTok teorisi</option>
-      </select>
-
-      <select id="length">
-        <option>30 saniye</option>
-        <option>45 saniye</option>
-        <option>60 saniye</option>
-      </select>
-
-      <button onclick="produce()">AiTube İçerik Üret</button>
+      <button onclick="askAI()">AI Cevap Üret</button>
+      <button class="blue" onclick="startVoice()">Konuşarak Sor</button>
+      <button class="green" onclick="speakResult()">Cevabı Sesli Oku</button>
+      <button class="red" onclick="stopVoice()">Sesi Durdur</button>
       <button class="blue" onclick="copyResult()">Çıktıyı Kopyala</button>
-      <button class="green" onclick="speakResult()">Sesli Oku</button>
+
+      <h3>Hızlı Komutlar</h3>
+      <button onclick="quick('Bugün paylaşmak için 3 viral anime kısa film fikri üret. Her biri için hook, senaryo ve hashtag ver.')">3 Viral Fikir</button>
+      <button onclick="quick('AiTube için 30 saniyelik duygusal anime kısa film senaryosu yaz. Sahne sahne prompt ver.')">Anime Senaryo</button>
+      <button onclick="quick('Bu hafta AiTube ile para kazanmak için uygulanabilir günlük plan çıkar.')">Para Planı</button>
     </div>
 
     <div class="card">
-      <h2>Çıktı</h2>
-      <div id="out" class="output">Hazır. Fikir yaz ve üret.</div>
+      <h2>AI Cevap</h2>
+      <div id="out" class="output">Hazır. Yaz veya konuş.</div>
     </div>
 
   </div>
 </div>
 
 <script>
-function produce(){
-  const idea = document.getElementById("idea").value || "yalnız bir robot";
-  const type = document.getElementById("type").value;
-  const length = document.getElementById("length").value;
+const out = document.getElementById("out");
+const messageBox = document.getElementById("message");
 
-  const text = `AITUBE VİDEO PLANI
+async function askAI(){
+  const message = messageBox.value.trim();
 
-KONU:
-${idea}
+  if(!message){
+    out.textContent = "Önce bir komut yaz veya konuş.";
+    return;
+  }
 
-FORMAT:
-${type}
+  out.textContent = "AiTube düşünüyor...";
 
-SÜRE:
-${length}
+  try{
+    const res = await fetch("/api/generate", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ message })
+    });
 
-VİDEO BAŞLIĞI:
-${idea} hakkında 60 saniyelik anime hikayesi
+    const data = await res.json();
 
-HOOK / İLK CÜMLE:
-Kimse onun gerçek olmadığını bilmiyordu... ta ki gece yarısı konuşmaya başlayana kadar.
+    if(!res.ok){
+      out.textContent = "Hata: " + (data.error || "Bilinmeyen hata");
+      return;
+    }
 
-KISA SENARYO:
-Bir karakter, sessiz ve karanlık bir dünyada yalnız yaşar.
-Her gün aynı döngüyü tekrarlar.
-Bir gece, geçmişinden gelen gizemli bir ses onu takip etmeye başlar.
-Başta korkar.
-Sonra bu sesin aslında kendi kaybolmuş cesareti olduğunu anlar.
-Finalde karakter değişir ve yeni bir yolculuğa çıkar.
+    out.textContent = data.reply || "Cevap gelmedi.";
+    speakText(data.reply);
 
-SAHNE PLANI:
-1. Karanlık şehir / boş otel / sisli sokak.
-2. Ana karakter yalnız yürür.
-3. Gizemli ışık belirir.
-4. Duygusal yüzleşme.
-5. Güçlü final bakışı.
-6. Ekranda kısa vurucu cümle.
+  }catch(e){
+    out.textContent = "Bağlantı hatası: " + e.message;
+  }
+}
 
-GÖRSEL PROMPT:
-Cinematic anime style, dramatic lighting, emotional character, detailed background, dark atmosphere, soft shadows, high quality, ${idea}
-
-VİDEO PROMPT:
-Anime short film, slow cinematic camera movement, emotional atmosphere, dramatic reveal, detailed scene, ${idea}
-
-SES METNİ:
-Bazı hikayeler karanlıkta başlar.
-Çünkü insan en çok sessizlikte kendini duyar.
-O gece her şey değişti.
-Ve artık hiçbir şey eskisi gibi olmayacaktı.
-
-TİKTOK / REELS AÇIKLAMA:
-Bu hikayenin devamı gelsin mi?
-
-HASHTAG:
-#aitube #anime #aivideo #shortfilm #yapayzeka #reels #tiktok
-
-PARA KAZANMA PLANI:
-1. Bu formatta günde 3 video üret.
-2. En çok izlenen karakteri seri yap.
-3. 10 bölüm sonra “devam bölümü” sistemi kur.
-4. Shopier üzerinden özel AI video paketi sat.
-5. Otellere, markalara ve kişilere kısa AI reklam videosu hizmeti ver.
-
-BUGÜNKÜ GÖREV:
-Bu fikri ilk video olarak üret, paylaş ve izlenme oranını not al.`;
-
-  document.getElementById("out").textContent = text;
+function quick(text){
+  messageBox.value = text;
+  askAI();
 }
 
 function copyResult(){
-  navigator.clipboard.writeText(document.getElementById("out").textContent);
+  navigator.clipboard.writeText(out.textContent);
   alert("Kopyalandı");
 }
 
-function speakResult(){
-  const msg = new SpeechSynthesisUtterance(document.getElementById("out").textContent);
+function speakText(text){
+  if(!text) return;
+  const msg = new SpeechSynthesisUtterance(text);
   msg.lang = "tr-TR";
+  msg.rate = 1;
   speechSynthesis.cancel();
   speechSynthesis.speak(msg);
+}
+
+function speakResult(){
+  speakText(out.textContent);
+}
+
+function stopVoice(){
+  speechSynthesis.cancel();
+}
+
+function startVoice(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!SpeechRecognition){
+    out.textContent = "Bu tarayıcı sesli dinlemeyi desteklemiyor. Safari/Chrome dene.";
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "tr-TR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  out.textContent = "Dinliyorum... Konuş.";
+
+  recognition.start();
+
+  recognition.onresult = function(event){
+    const text = event.results[0][0].transcript;
+    messageBox.value = text;
+    askAI();
+  };
+
+  recognition.onerror = function(event){
+    out.textContent = "Ses algılama hatası: " + event.error;
+  };
 }
 </script>
 </body>
