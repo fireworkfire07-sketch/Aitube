@@ -4,30 +4,16 @@ import { useState } from "react";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
-  const [video, setVideo] = useState("");
+  const [result, setResult] = useState(null);
 
   async function makeVideo() {
     setLoading(true);
-    setVideo("");
+    setResult(null);
 
-    try {
-      const res = await fetch("/api/make-video", {
-        method: "POST"
-      });
+    const res = await fetch("/api/make-video", { method: "POST" });
+    const data = await res.json();
 
-      const data = await res.json();
-
-      if (data.videoUrl) {
-        setVideo(data.videoUrl);
-      } else if (data.url) {
-        setVideo(data.url);
-      } else {
-        alert("Video üretildi ama video linki dönmedi.");
-      }
-    } catch (error) {
-      alert("Video üretirken hata oluştu.");
-    }
-
+    setResult(data);
     setLoading(false);
   }
 
@@ -41,19 +27,35 @@ export default function Home() {
         style={{
           padding: "16px 24px",
           borderRadius: 12,
-          border: "0",
+          border: 0,
           background: "red",
           color: "white",
           fontSize: 18
         }}
       >
-        {loading ? "Video üretiliyor..." : "Video Üret"}
+        {loading ? "Üretiliyor..." : "Video Üret"}
       </button>
 
-      {video && (
+      {result && (
         <div style={{ marginTop: 30 }}>
-          <video src={video} controls style={{ width: "100%", borderRadius: 16 }} />
-          <p>{video}</p>
+          <h2>{result.title}</h2>
+          <h3>{result.hook}</h3>
+
+          <video
+            src={result.videoUrl}
+            controls
+            style={{ width: "100%", borderRadius: 16, marginTop: 20 }}
+          />
+
+          <h3>Sahneler</h3>
+          <ul>
+            {result.scenes.map((scene, index) => (
+              <li key={index}>{scene}</li>
+            ))}
+          </ul>
+
+          <h3>Ses Metni</h3>
+          <p>{result.voiceText}</p>
         </div>
       )}
     </main>
