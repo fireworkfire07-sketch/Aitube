@@ -1,4 +1,15 @@
+"use client";
+
 export default function Home() {
+  async function makeVideo() {
+    const res = await fetch("/api/make-video", {
+      method: "POST",
+    });
+
+    const data = await res.json();
+    alert(data.message);
+  }
+
   return (
     <main
       style={{
@@ -16,6 +27,7 @@ export default function Home() {
       </p>
 
       <button
+        onClick={makeVideo}
         style={{
           marginTop: 30,
           padding: 20,
