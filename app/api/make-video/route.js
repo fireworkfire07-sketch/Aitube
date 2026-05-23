@@ -1,23 +1,29 @@
 import { NextResponse } from "next/server";
+import { exec } from "child_process";
 
 export async function POST() {
-  const video = {
-    success: true,
-    title: "Antalya’da Kimsenin Bilmediği 3 Gizli Yer",
-    script:
-      "Antalya sadece deniz ve otellerden ibaret değil. Bugün sana çoğu turistin bilmediği üç gizli yeri göstereceğim. Birinci yer: sakin koylar. İkinci yer: eski taş sokaklar. Üçüncü yer: gün batımında fotoğraf için mükemmel noktalar. Bu tarz yerleri seviyorsan takipte kal.",
-    scenes: [
-      "Sahilde hızlı giriş görüntüsü",
-      "Gizli koy görüntüsü",
-      "Kaleiçi sokakları",
-      "Gün batımı fotoğraf noktası",
-      "Takip et çağrısı",
-    ],
-    youtubeDescription:
-      "Antalya’da keşfedilecek gizli yerler, gezi önerileri ve kısa video fikirleri.",
-    hashtags: ["#Antalya", "#Travel", "#Shorts", "#GezilecekYerler"],
-    message: "AITUBE senaryo üretti",
-  };
+  return new Promise((resolve) => {
+    exec("node scripts/make-video.js", (error, stdout, stderr) => {
 
-  return NextResponse.json(video);
+      if (error) {
+        resolve(
+          NextResponse.json({
+            success: false,
+            message: "Video üretilemedi",
+            error: error.message,
+          })
+        );
+        return;
+      }
+
+      resolve(
+        NextResponse.json({
+          success: true,
+          message: "AITUBE video oluşturdu",
+          log: stdout || stderr,
+          file: "/aitube-video.txt",
+        })
+      );
+    });
+  });
 }
