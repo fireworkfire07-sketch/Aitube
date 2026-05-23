@@ -3,47 +3,53 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [video, setVideo] = useState("");
 
-  async function makeVideo() {
+  const makeVideo = async () => {
     setLoading(true);
 
-    const res = await fetch("/api/make-video", {
-      method: "POST",
-    });
+    try {
+      const res = await fetch("/api/make-video", {
+        method: "POST",
+      });
 
-    const data = await res.json();
-    setVideo(data);
+      const data = await res.json();
+
+      console.log(data);
+
+      if (data.videoUrl) {
+        setVideo(data.videoUrl);
+      } else {
+        alert("Video gelmedi");
+      }
+    } catch (err) {
+      console.log(err);
+      alert("Hata oluştu");
+    }
+
     setLoading(false);
-  }
+  };
 
   return (
     <main
       style={{
-        background: "#0b1020",
-        color: "white",
         minHeight: "100vh",
+        background: "black",
+        color: "white",
         padding: 40,
-        fontFamily: "Arial",
       }}
     >
-      <h1 style={{ fontSize: 50 }}>AITUBE V2</h1>
-
-      <p style={{ fontSize: 22 }}>
-        Otomatik AI video üretim sistemi
-      </p>
+      <h1>AITUBE</h1>
 
       <button
         onClick={makeVideo}
         style={{
-          marginTop: 30,
           padding: 20,
-          fontSize: 20,
-          borderRadius: 15,
-          border: "none",
-          background: "#6c3cff",
+          background: "red",
           color: "white",
+          border: "none",
+          borderRadius: 10,
           cursor: "pointer",
         }}
       >
@@ -51,33 +57,16 @@ export default function Home() {
       </button>
 
       {video && (
-        <section
+        <video
+          src={video}
+          controls
+          autoPlay
           style={{
-            marginTop: 40,
-            padding: 25,
+            width: "100%",
+            marginTop: 30,
             borderRadius: 20,
-            background: "#151b33",
           }}
-        >
-          <h2>{video.title}</h2>
-
-          <h3>Senaryo</h3>
-          <p style={{ fontSize: 18, lineHeight: 1.6 }}>{video.script}</p>
-
-          <h3>Sahneler</h3>
-          <ul>
-            {video.scenes.map((scene, index) => (
-              <li key={index}>{scene}</li>
-            ))}
-          </ul>
-
-          <h3>YouTube Açıklaması</h3>
-          <p>{video.youtubeDescription}</p>
-
-          <h3>Hashtagler</h3>
-          <p>{video.hashtags.join(" ")}</p>
-        </section>
+        />
       )}
     </main>
   );
-}
