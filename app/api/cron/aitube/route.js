@@ -74,7 +74,7 @@ export async function GET() {
       uploadStatus: "youtube_api_not_connected",
       nextStep: "video_render"
     }
-  };
+  };const version = "V2";
 
   console.log("AITUBE V1 PACKAGE:", packageData);
 
