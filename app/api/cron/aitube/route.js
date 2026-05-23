@@ -77,6 +77,10 @@ export async function GET() {
   };const version = "V2";
 
   console.log("AITUBE V1 PACKAGE:", packageData);
+  
 
   return Response.json(packageData);
+}
+export async function GET() {
+  return POST();
 }
