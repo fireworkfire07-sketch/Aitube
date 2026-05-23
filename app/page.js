@@ -6,67 +6,56 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [video, setVideo] = useState("");
 
-  const makeVideo = async () => {
+  async function makeVideo() {
     setLoading(true);
+    setVideo("");
 
     try {
       const res = await fetch("/api/make-video", {
-        method: "POST",
+        method: "POST"
       });
 
       const data = await res.json();
 
-      console.log(data);
-
       if (data.videoUrl) {
         setVideo(data.videoUrl);
+      } else if (data.url) {
+        setVideo(data.url);
       } else {
-        alert("Video gelmedi");
+        alert("Video üretildi ama video linki dönmedi.");
       }
-    } catch (err) {
-      console.log(err);
-      alert("Hata oluştu");
+    } catch (error) {
+      alert("Video üretirken hata oluştu.");
     }
 
     setLoading(false);
-  };
+  }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "black",
-        color: "white",
-        padding: 40,
-      }}
-    >
-      <h1>AITUBE</h1>
+    <main style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: 30 }}>
+      <h1>AiTube</h1>
 
       <button
         onClick={makeVideo}
+        disabled={loading}
         style={{
-          padding: 20,
+          padding: "16px 24px",
+          borderRadius: 12,
+          border: "0",
           background: "red",
           color: "white",
-          border: "none",
-          borderRadius: 10,
-          cursor: "pointer",
+          fontSize: 18
         }}
       >
-        {loading ? "Üretiliyor..." : "Video Üret"}
+        {loading ? "Video üretiliyor..." : "Video Üret"}
       </button>
 
       {video && (
-        <video
-          src={video}
-          controls
-          autoPlay
-          style={{
-            width: "100%",
-            marginTop: 30,
-            borderRadius: 20,
-          }}
-        />
+        <div style={{ marginTop: 30 }}>
+          <video src={video} controls style={{ width: "100%", borderRadius: 16 }} />
+          <p>{video}</p>
+        </div>
       )}
     </main>
   );
+}
