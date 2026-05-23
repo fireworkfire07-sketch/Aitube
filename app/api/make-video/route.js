@@ -1,19 +1,34 @@
-export async function POST() {
-  const script = {
-    title: "Bugünün AiTube Videosu",
-    hook: "Bunu öğrenince videolara bakışın değişecek.",
-    scenes: [
-      "1. Güçlü bir giriş cümlesiyle dikkat çek.",
-      "2. Konuyu kısa ve merak uyandırıcı anlat.",
-      "3. İzleyiciye şaşırtıcı bir bilgi ver.",
-      "4. Sonunda yorum ve takip çağrısı yap."
-    ],
-    voiceText:
-      "Bunu öğrenince videolara bakışın değişecek. Yapay zeka artık sadece yazı yazmıyor, fikir buluyor, senaryo kuruyor ve video üretim sürecini başlatıyor. Bugünün fırsatı, içerik üretimini otomatikleştirmek. Eğer bunu doğru kurarsan, her gün yeni video fikri çıkarabilirsin.",
-    videoUrl:
-      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    status: "ok"
-  };
+const videos = [
+  "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  "https://media.w3.org/2010/05/sintel/trailer.mp4",
+  "https://media.w3.org/2010/05/bunny/trailer.mp4"
+];
 
-  return Response.json(script);
+const topics = [
+  "Yapay zeka ile para kazanma",
+  "YouTube Shorts otomasyonu",
+  "Günde 1 saatle dijital gelir",
+  "AI video üretim sistemi",
+  "Telefonla içerik üretme",
+  "Kendi kendine çalışan YouTube kanalı"
+];
+
+export async function POST() {
+  const topic = topics[Math.floor(Math.random() * topics.length)];
+  const videoUrl = videos[Math.floor(Math.random() * videos.length)];
+
+  return Response.json({
+    title: `${topic} artık düşündüğünden daha kolay`,
+    hook: "Bunu bugün kuranlar yarın içerik üretmeye başlamış olacak.",
+    scenes: [
+      "0-3 sn: güçlü hook",
+      "3-12 sn: problemi göster",
+      "12-25 sn: çözümü anlat",
+      "25-35 sn: takip çağrısı"
+    ],
+    voiceText: `${topic} konusunda en büyük hata, sistemi kurmadan sürekli araç aramaktır. Doğru kurulan bir otomasyon, her basışta yeni fikir çıkarır, senaryo hazırlar ve video üretim sürecini başlatır.`,
+    hashtags: ["#aitube", "#yapayzeka", "#shorts", "#otomasyon"],
+    videoUrl,
+    status: "ok"
+  });
 }
