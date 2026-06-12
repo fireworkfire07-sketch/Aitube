@@ -69,7 +69,8 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
       `colorful children's book illustration, ${sc.imageQuery}, bright cheerful colors, cute cartoon style, kids coloring theme`
     );
     const imgRes = await fetchRetry(
-      `https://image.pollinations.ai/prompt/${prompt}?width=1920&height=1080&nologo=true&seed=${i + 11}`
+      `      `https://gen.pollinations.ai/image/${prompt}?width=1920&height=1080&seed=${i + 11}&key=${process.env.POLLINATIONS_KEY}`
+`
     );
     fs.writeFileSync(`is/g${i}.jpg`, Buffer.from(await imgRes.arrayBuffer()));
 
