@@ -1,6 +1,4 @@
-// AiTube v2 — GitHub Actions üretim hattı
-// Senaryo (GPT) → Görseller (OpenAI) → Ses (OpenAI TTS) → Render (ffmpeg) → YouTube
-
+// AiTube v2.1 — GitHub Actions üretim hattı
 const fs = require("fs");
 const { execSync } = require("child_process");
 
@@ -15,19 +13,29 @@ async function fetchRetry(url, opts = {}, deneme = 4) {
     try {
       const r = await fetch(url, opts);
       if (r.ok) return r;
-      console.log(`Deneme ${i}: HTTP ${r.status}`);
+      console.log(`Deneme ${i}: HTTP ${r.status} — ${(await r.text()).slice(0, 300)}`);
     } catch (e) {
-    console.log(`Deneme ${i}: HTTP ${r.status} — ${(await r.text()).slice(0, 300)}`);
-
+      console.log(`Deneme ${i}: ${e.message}`);
     }
     await new Promise((x) => setTimeout(x, 5000 * i));
   }
   throw new Error("Kaynak alınamadı: " + url.slice(0, 100));
 }
 
+function ffmpeg(cmd) {
+  try {
+    execSync(cmd, { stdio: "pipe" });
+  } catch (e) {
+    const hata = (e.stderr ? e.stderr.toString() : "") + (e.stdout ? e.stdout.toString() : "");
+    console.log("FFMPEG HATASI:", hata.slice(-1000));
+    throw new Error("ffmpeg başarısız");
+  }
+}
+
 (async () => {
   fs.mkdirSync("is", { recursive: true });
   const nis = NISLER[(new Date().getDate() + new Date().getHours()) % NISLER.length];
+  const ozelKonu = process.env.KONU;
   console.log("Niş:", nis);
 
   // 1) SENARYO
@@ -50,7 +58,12 @@ SADECE şu JSON formatında cevap ver:
 "scenes":[{"voiceover":"4-6 cümle, yavaş tempolu, çocuklara sorular soran sıcak anlatım","imageQuery":"detailed English illustration description"}]}
 Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya davet eden kapanış). Tutarlı görsel evren. Dil Türkçe (imageQuery hariç).`,
         },
-        { role: "user", content: `Niş: ${nis}. Bu nişten özgün bir konu seç ve senaryoyu yaz.` },
+        {
+          role: "user",
+          content: ozelKonu
+            ? `Konu: ${ozelKonu}. Bu konuda senaryoyu yaz.`
+            : `Niş: ${nis}. Bu nişten özgün bir konu seç ve senaryoyu yaz.`,
+        },
       ],
     }),
   });
@@ -59,7 +72,7 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
   if (!script.scenes?.length) throw new Error("Senaryo üretilemedi");
   console.log(`Senaryo: ${script.title} (${script.scenes.length} sahne)`);
 
-  // 2) HER SAHNE: görsel + ses + mini video
+  // 2) HER SAHNE
   const parcalar = [];
   for (let i = 0; i < script.scenes.length; i++) {
     const sc = script.scenes[i];
@@ -80,7 +93,7 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
       }),
     });
     const imgData = await imgRes.json();
-    fs.writeFileSync(`is/g${i}.jpg`, Buffer.from(imgData.data[0].b64_json, "base64"));
+    fs.writeFileSync(`is/g${i}.png`, Buffer.from(imgData.data[0].b64_json, "base64"));
 
     // Ses (OpenAI TTS)
     const ttsRes = await fetchRetry("https://api.openai.com/v1/audio/speech", {
@@ -93,19 +106,18 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
     });
     fs.writeFileSync(`is/s${i}.mp3`, Buffer.from(await ttsRes.arrayBuffer()));
 
-    // Görsel + ses → sahne videosu (hafif yakınlaşma efektiyle)
-    execSync(
-      `ffmpeg -y -loop 1 -i is/g${i}.jpg -i is/s${i}.mp3 ` +
-      `-vf "scale=1920:1080:force_original_aspect_ratio=cover,crop=1920:1080,zoompan=z='min(zoom+0.0008,1.15)':d=125*60:s=1920x1080:fps=25" ` +
-      `-c:v libx264 -preset veryfast -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest is/p${i}.mp4`,
-      { stdio: "pipe" }
+    // Görsel + ses → sahne videosu
+    ffmpeg(
+      `ffmpeg -y -loop 1 -i is/g${i}.png -i is/s${i}.mp3 ` +
+      `-vf "scale=1920:1080:force_original_aspect_ratio=cover,crop=1920:1080" ` +
+      `-c:v libx264 -preset veryfast -c:a aac -b:a 192k -pix_fmt yuv420p -shortest is/p${i}.mp4`
     );
     parcalar.push(`file 'p${i}.mp4'`);
   }
 
   // 3) BİRLEŞTİR
   fs.writeFileSync("is/liste.txt", parcalar.join("\n"));
-  execSync(`ffmpeg -y -f concat -safe 0 -i is/liste.txt -c copy is/final.mp4`, { stdio: "pipe" });
+  ffmpeg(`ffmpeg -y -f concat -safe 0 -i is/liste.txt -c copy is/final.mp4`);
   const boyut = fs.statSync("is/final.mp4").size;
   console.log(`Final video: ${(boyut / 1048576).toFixed(1)} MB`);
 
@@ -157,6 +169,6 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
     body: fs.readFileSync("is/final.mp4"),
   });
   const upData = await upRes.json();
-  if (!upData.id) throw new Error("Upload tamamlanamadı: " + JSON.stringify(upData));
+  if (!upData.id) throw new Error("Upload tamamlanamadı: " + JSON.stringify(upData).slice(0, 300));
   console.log(`✅ YAYINDA: https://youtube.com/watch?v=${upData.id}`);
 })();
