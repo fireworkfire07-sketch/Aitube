@@ -173,8 +173,22 @@ Kurallar: 4-6 sahne. Dil Türkçe (imageQuery hariç). Çocuk dostu, neşeli ton
     return Response.json({ ok: false, error: e?.message, log }, { status: 500 });
   }
 }
-
-// Sağlık kontrolü buraya ping atabilsin diye:
-export async function GET() {
-  return Response.json({ ok: true, service: "create-video", status: "hazır" });
+// Sağlık kontrolü + tarayıcıdan test:
+// /api/create-video?topic=test yazarsan pipeline'ı çalıştırıp hatayı gösterir
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const topic = url.searchParams.get("topic");
+  if (!topic) {
+    return Response.json({ ok: true, service: "create-video", status: "hazır" });
+  }
+  return POST(
+    new Request(req.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic }),
+    })
+  );
 }
+
+
+  
