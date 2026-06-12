@@ -17,7 +17,8 @@ async function fetchRetry(url, opts = {}, deneme = 4) {
       if (r.ok) return r;
       console.log(`Deneme ${i}: HTTP ${r.status}`);
     } catch (e) {
-      console.log(`Deneme ${i}: ${e.message}`);
+    console.log(`Deneme ${i}: HTTP ${r.status} — ${(await r.text()).slice(0, 300)}`);
+
     }
     await new Promise((x) => setTimeout(x, 5000 * i));
   }
