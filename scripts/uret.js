@@ -1,5 +1,5 @@
 // AiTube v2 — GitHub Actions üretim hattı
-// Senaryo (GPT) → Görseller (Pollinations) → Ses (OpenAI TTS) → Render (ffmpeg) → YouTube
+// Senaryo (GPT) → Görseller (OpenAI) → Ses (OpenAI TTS) → Render (ffmpeg) → YouTube
 
 const fs = require("fs");
 const { execSync } = require("child_process");
@@ -64,15 +64,22 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
     const sc = script.scenes[i];
     console.log(`Sahne ${i + 1}/${script.scenes.length}...`);
 
-    // Görsel (Pollinations — ücretsiz)
-    const prompt = encodeURIComponent(
-      `colorful children's book illustration, ${sc.imageQuery}, bright cheerful colors, cute cartoon style, kids coloring theme`
-    );
-    const imgRes = await fetchRetry(
-      `      `https://gen.pollinations.ai/image/${prompt}?width=1920&height=1080&seed=${i + 11}&key=${process.env.POLLINATIONS_KEY}`
-`
-    );
-    fs.writeFileSync(`is/g${i}.jpg`, Buffer.from(await imgRes.arrayBuffer()));
+    // Görsel (OpenAI)
+    const imgRes = await fetchRetry("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-image-1-mini",
+        prompt: `colorful children's book illustration, ${sc.imageQuery}, bright cheerful colors, cute cartoon style, kids coloring theme`,
+        size: "1536x1024",
+        quality: "low",
+      }),
+    });
+    const imgData = await imgRes.json();
+    fs.writeFileSync(`is/g${i}.jpg`, Buffer.from(imgData.data[0].b64_json, "base64"));
 
     // Ses (OpenAI TTS)
     const ttsRes = await fetchRetry("https://api.openai.com/v1/audio/speech", {
