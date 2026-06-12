@@ -1,6 +1,6 @@
 // app/api/create-video/route.ts
 // TAM OTOMATİK VİDEO ÜRETİM HATTI
-// Konu al → GPT senaryo yazar → JSON2Video render eder → YouTube'a yükler
+// Konu al → GPT senaryo yazar → JSON2Video render eder (AI görsel + ses) → YouTube'a yükler
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -32,7 +32,7 @@ SADECE şu JSON formatında cevap ver:
   "description": "YouTube açıklaması (2-3 cümle + 3 hashtag)",
   "tags": ["etiket1","etiket2","etiket3","etiket4","etiket5"],
   "scenes": [
-    {"text": "ekranda görünecek kısa metin", "voiceover": "anlatıcının okuyacağı 1-2 cümle", "imageQuery": "sahne için görsel arama terimi (İngilizce)"}
+    {"text": "ekranda görünecek kısa metin", "voiceover": "anlatıcının okuyacağı 1-2 cümle", "imageQuery": "sahne görseli tarifi (İngilizce)"}
   ]
 }
 Kurallar: 4-6 sahne. Dil Türkçe (imageQuery hariç). Çocuk dostu, neşeli ton.`,
@@ -46,19 +46,17 @@ Kurallar: 4-6 sahne. Dil Türkçe (imageQuery hariç). Çocuk dostu, neşeli ton
     if (!script.scenes?.length) throw new Error("GPT senaryo üretemedi");
     log.push(`Senaryo hazır: ${script.title} (${script.scenes.length} sahne)`);
 
-    // ADIM 2: JSON2Video render (görsel + Türkçe seslendirme)
+    // ADIM 2: JSON2Video render (AI görsel + Türkçe seslendirme)
     const movie = {
       resolution: "full-hd",
       quality: "high",
       scenes: script.scenes.map((s: any) => ({
         comment: s.text,
         elements: [
-          {          {
+          {
             type: "image",
             prompt: `Colorful children's book illustration of ${s.imageQuery}, bright cheerful colors, cute cartoon style, kids coloring theme`,
             model: "flux-schnell",
-          },
-
           },
           {
             type: "text",
@@ -175,8 +173,9 @@ Kurallar: 4-6 sahne. Dil Türkçe (imageQuery hariç). Çocuk dostu, neşeli ton
     return Response.json({ ok: false, error: e?.message, log }, { status: 500 });
   }
 }
+
 // Sağlık kontrolü + tarayıcıdan test:
-// /api/create-video?topic=test yazarsan pipeline'ı çalıştırıp hatayı gösterir
+// /api/create-video?topic=test yazarsan pipeline'ı çalıştırıp sonucu gösterir
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const topic = url.searchParams.get("topic");
@@ -191,6 +190,3 @@ export async function GET(req: Request) {
     })
   );
 }
-
-
-  
