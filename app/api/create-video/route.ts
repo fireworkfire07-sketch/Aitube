@@ -53,10 +53,12 @@ Kurallar: 4-6 sahne. Dil Türkçe (imageQuery hariç). Çocuk dostu, neşeli ton
       scenes: script.scenes.map((s: any) => ({
         comment: s.text,
         elements: [
-          {
+          {          {
             type: "image",
-            src: `https://source.unsplash.com/1920x1080/?${encodeURIComponent(s.imageQuery)}`,
-            scale: { width: 1920, height: 1080 },
+            prompt: `Colorful children's book illustration of ${s.imageQuery}, bright cheerful colors, cute cartoon style, kids coloring theme`,
+            model: "flux-schnell",
+          },
+
           },
           {
             type: "text",
