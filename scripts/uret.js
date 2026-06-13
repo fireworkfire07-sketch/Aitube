@@ -109,7 +109,7 @@ Kurallar: TAM 18 sahne (merak uyandıran giriş + 16 içerik + abone olmaya dave
     // Görsel + ses → sahne videosu
     ffmpeg(
       `ffmpeg -y -loop 1 -i is/g${i}.png -i is/s${i}.mp3 ` +
-      `-vf "scale=1920:1080:force_original_aspect_ratio=cover,crop=1920:1080" ` +
+      `-vf "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080" ` +
       `-c:v libx264 -preset veryfast -c:a aac -b:a 192k -pix_fmt yuv420p -shortest is/p${i}.mp4`
     );
     parcalar.push(`file 'p${i}.mp4'`);
