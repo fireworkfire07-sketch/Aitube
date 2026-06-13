@@ -19,8 +19,6 @@ jobs:
     - name: ffmpeg kur
       run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
-      - name: FFmpeg kur
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Video uret ve yukle
         env:
