@@ -1,6 +1,8 @@
 // AiTube v2.1 — GitHub Actions üretim hattı
 const fs = require("fs");
 const { execSync } = require("child_process");
+console.log("DEBUG CLIENT_ID len:", process.env.YT_CLIENT_ID?.length, JSON.stringify(process.env.YT_CLIENT_ID?.slice(0,6)), JSON.stringify(process.env.YT_CLIENT_ID?.slice(-6)));
+console.log("DEBUG SECRET len:", process.env.YT_CLIENT_SECRET?.length, JSON.stringify(process.env.YT_CLIENT_SECRET?.slice(0,4)));
 
 const NISLER = [
   "sevimli dinozorlar", "uzay ve gezegenler", "tasitlar", "okyanus canlilari",
