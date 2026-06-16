@@ -1,5 +1,5 @@
 // uret-senaryo.mjs
-// Once bitkiyi internetten ARASTIRIR, sonra arastirmaya dayali 58 sahnelik senaryo yazar
+// NatGeo tarzi derin belgesel senaryo: arastir -> kurgu -> sinematik sahne yazimi
 // Gerekli: OPENAI_API_KEY + bitkiler.txt
 
 import fs from "node:fs";
@@ -7,124 +7,106 @@ import fs from "node:fs";
 const MODEL = "gpt-4o";
 const ARASTIRMA_MODEL = "gpt-4o-search-preview";
 const API_KEY = process.env.OPENAI_API_KEY;
-
 if (!API_KEY) { console.error("HATA: OPENAI_API_KEY tanimli degil."); process.exit(1); }
 
-const bitkiler = fs.readFileSync("bitkiler.txt", "utf8")
-  .split("\n").map(s => s.trim()).filter(Boolean);
-
+const bitkiler = fs.readFileSync("bitkiler.txt", "utf8").split("\n").map(s => s.trim()).filter(Boolean);
 let islenmis = [];
-if (fs.existsSync("islenmis.txt")) {
-  islenmis = fs.readFileSync("islenmis.txt", "utf8").split("\n").map(s => s.trim()).filter(Boolean);
-}
-
+if (fs.existsSync("islenmis.txt")) islenmis = fs.readFileSync("islenmis.txt", "utf8").split("\n").map(s => s.trim()).filter(Boolean);
 const bitki = bitkiler.find(b => !islenmis.includes(b));
 if (!bitki) { console.log("Tum bitkiler islendi."); process.exit(0); }
 console.log("Secilen bitki:", bitki, `(${islenmis.length + 1}/${bitkiler.length})`);
 
-// === 1) ARASTIRMA ===
-async function arastir() {
+async function cagir(model, messages, opts = {}) {
+  const body = { model, messages, ...opts };
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      model: ARASTIRMA_MODEL,
-      web_search_options: {},
-      messages: [{
-        role: "user",
-        content: `"${bitki}" bitkisi/baharati hakkinda guvenilir kaynaklardan kapsamli arastirma yap ve Turkce ozetle. Sunlari topla:
-1) Botanik kimligi, nerede yetisir.
-2) Tarihsel kullanim: insanlik bunu ilk ne zaman/nerede kullandi, eski uygarliklar, Anadolu'daki yeri.
-3) Etken maddeler (bilimsel isimleriyle) ve bunlarin vucuttaki olasi etkileri (calismalardan).
-4) Mutfak kullanimi (Anadolu ve dunya).
-5) Farkli kulturlerdeki adi ve kullanimi.
-6) Ilginc/az bilinen gercekler.
-Maddeler halinde, gercek ve dogru bilgi ver.`
-      }]
-    })
+    body: JSON.stringify(body)
   });
-  if (!res.ok) {
-    console.log("Arastirma basarisiz, arastirmasiz devam ediliyor.", res.status);
-    return "";
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  if (!res.ok) throw new Error(`OpenAI ${res.status}: ${(await res.text()).slice(0,200)}`);
+  return (await res.json()).choices?.[0]?.message?.content ?? "";
 }
 
-// === 2) SENARYO: bolumlu uretim (toplam 58 sahne ~ 15-20 dk) ===
-const bolumler = [
-  { ad: "CENGEL", konu: "Guclu bir merak sorusuyla carpici giris.", sahne: 5 },
-  { ad: "BITKI NEDIR", konu: "Botanik kimligi, nerede yetisir, gorunumu.", sahne: 8 },
-  { ad: "ATALARIMIZ VE TARIH", konu: "Ilk kullanim, arkeoloji, eski uygarliklar, Anadolu'ya gelis.", sahne: 10 },
-  { ad: "BILIM VE ETKEN MADDELER", konu: "Aktif bilesikler isimleriyle, vucutta ne yapar.", sahne: 11 },
-  { ad: "MUTFAK", konu: "Anadolu ve dunya mutfaginda kullanimi.", sahne: 10 },
-  { ad: "KULTUR VE DUNYA", konu: "Farkli kulturlerdeki adi/kullanimi, ilginc detaylar.", sahne: 9 },
-  { ad: "KAPANIS", konu: "Tatmin edici kapanis + kisa 'doktorunuza danisin' notu.", sahne: 5 }
-];
+// 1) DERIN ARASTIRMA
+async function arastir() {
+  try {
+    return await cagir(ARASTIRMA_MODEL, [{
+      role: "user",
+      content: `"${bitki}" hakkinda derin, guvenilir arastirma yap. Su konularda SOMUT, ilginc, az bilinen detaylar bul:
+- Botanik ve dogadaki yeri
+- Tarih: hangi uygarliklar, hangi yuzyil, arkeolojik bulgular, efsaneler, ticaret yollari
+- Bilim: etken maddeler (kimyasal isimleriyle), bilimsel calismalar, etki mekanizmasi
+- Anadolu kulturu: yoresel kullanim, gelenek, inanis
+- Dunya mutfagi ve kulturlerindeki yeri
+- Carpici/sasirtici gercekler, hikayeler
+Genel laf degil, SPESIFIK olgular, isimler, tarihler, rakamlar ver. Turkce.`
+    }, {
+      role: "user",
+      content: "(Not: gerceklere dayan, uydurma. Bulamazsan o kismi atla.)"
+    }], { web_search_options: {} });
+  } catch (e) { console.log("Arastirma atlandi:", e.message); return ""; }
+}
 
-const sistemMesaji = "Sen Anadolu bitkileri uzerine uzman bir belgesel senaristisin. Sana verilen ARASTIRMA NOTUNA sadik kalarak, bilimsel olarak dogru yazarsin. Sadece istenen JSON formatinda yanit verirsin.";
+// 2) HIKAYE KURGUSU (sahne sahne plan)
+async function kurguYap(arastirma) {
+  const metin = await cagir(MODEL, [
+    { role: "system", content: "Sen odullu bir belgesel yonetmenisin (National Geographic tarzi). Kuru bilgi degil, MERAK ve DUYGU uyandiran bir anlati kurarsin." },
+    { role: "user", content: `Bitki: "${bitki}"
+ARASTIRMA:
+${arastirma.slice(0, 7000)}
 
-async function bolumUret(bolum, arastirma, oncekiOzet, deneme = 1) {
-  const mesaj = `Bitki: "${bitki}"
+Bu bitki uzerine 15-18 dakikalik bir belgeselin SAHNE PLANINI cikar. Toplam 32 sahne.
+Belgesel bir HIKAYE gibi aksin: carpici bir aciyla basla, merak uyandirarak ilerle, bilim-tarih-kultur katmanlarini orerek derinlestir, guclu bir kapanisla bitir.
+Her sahne icin TEK CUMLELIK bir plan yaz (o sahnede ne anlatilacak).
+SADECE JSON don: { "plan": ["sahne 1 plani", "sahne 2 plani", ...] }` }
+  ], { temperature: 0.85, max_tokens: 3000, response_format: { type: "json_object" } });
+  return JSON.parse(metin.replace(/```json/gi,"").replace(/```/g,"").trim()).plan || [];
+}
 
-ARASTIRMA NOTU (bunu temel al, uydurma):
-${arastirma.slice(0, 6000)}
+// 3) SAHNELERI GRUP GRUP, SINEMATIK YAZ (her sahne ~110 kelime)
+async function sahneYaz(planGrup, arastirma, oncekiOzet, baslangicNo) {
+  const liste = planGrup.map((p, i) => `${baslangicNo + i}. ${p}`).join("\n");
+  const metin = await cagir(MODEL, [
+    { role: "system", content: "Sen National Geographic belgesellerinin senaristisin. Anlatimın: sinematik, derin, merak uyandiran, akici. Kuru ansiklopedi dili YOK. Tekrar YOK ('Anadolu Anadolu' gibi). Her cumle bir oncekini gelistirir, hikaye akar." },
+    { role: "user", content: `Bitki: "${bitki}"
+ARASTIRMA (gercek bilgi kaynagin):
+${arastirma.slice(0, 5000)}
+${oncekiOzet ? "\nONCEKI SAHNELERIN OZETI (tekrar etme, devam ettir):\n" + oncekiOzet : ""}
 
-Simdi belgesel senaryosunun "${bolum.ad}" bolumunu yaz. Bu bolumun konusu: ${bolum.konu}
-${oncekiOzet ? "Onceki bolumlerde anlatilan (tekrar etme): " + oncekiOzet : ""}
+Su sahne planlarini, her birini DOLU bir belgesel sahnesine donustur:
+${liste}
 
-Bu bolum icin TAM ${bolum.sahne} sahne yaz. Her sahne:
-- "anlatim": ~50-60 kelimelik akici, sicak, belgesel tadinda Turkce anlatim.
-- "gorsel": INGILIZCE, sinematik belgesel image prompt. Yazi OLMASIN.
+Her sahne icin:
+- "anlatim": 100-130 kelimelik, SINEMATIK, anlati diliyle Turkce metin. Somut detay, isim, tarih kullan. Izleyiciyi icine ceken bir ton. Robotik/listeleme degil, akan bir anlati.
+- "gorsel": INGILIZCE, cok detayli sinematik belgesel image prompt (isik, atmosfer, kompozisyon, lens hissi). Yazi/metin OLMASIN.
 
-SAGLIK DILI: "tedavi/sifa" gibi kesin iddia YOK; "destekleyebilir, yardimci olabilir" kullan.
-
-SADECE su JSON: { "sahneler": [ { "anlatim": "...", "gorsel": "..." } ] }`;
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "system", content: sistemMesaji }, { role: "user", content: mesaj }],
-      temperature: 0.8, max_tokens: 4500,
-      response_format: { type: "json_object" }
-    })
-  });
-  if (res.status === 429 && deneme <= 4) {
-    await new Promise(r => setTimeout(r, deneme * 20000));
-    return bolumUret(bolum, arastirma, oncekiOzet, deneme + 1);
-  }
-  if (!res.ok) throw new Error(`OpenAI hatasi ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  let metin = (data.choices?.[0]?.message?.content ?? "").replace(/```json/gi, "").replace(/```/g, "").trim();
-  return (JSON.parse(metin).sahneler) || [];
+SAGLIK DILI: "tedavi/sifa" gibi kesin iddia YOK; "calismalar gosteriyor, destekleyebilir" kullan.
+SADECE JSON don: { "sahneler": [ { "anlatim": "...", "gorsel": "..." } ] }` }
+  ], { temperature: 0.85, max_tokens: 4096, response_format: { type: "json_object" } });
+  return JSON.parse(metin.replace(/```json/gi,"").replace(/```/g,"").trim()).sahneler || [];
 }
 
 (async () => {
-  console.log("Arastiriliyor...");
+  console.log("1/3 Derin arastirma...");
   const arastirma = await arastir();
-  console.log("Arastirma tamam (" + arastirma.length + " karakter).");
+  console.log("  Arastirma:", arastirma.length, "karakter");
 
+  console.log("2/3 Hikaye kurgusu...");
+  const plan = await kurguYap(arastirma);
+  console.log("  Plan:", plan.length, "sahne");
+
+  console.log("3/3 Sinematik sahne yazimi...");
   let tumSahneler = [], ozet = "";
-  for (const bolum of bolumler) {
-    console.log(`Uretiliyor: ${bolum.ad}...`);
-    const sahneler = await bolumUret(bolum, arastirma, ozet);
+  const GRUP = 8;
+  for (let i = 0; i < plan.length; i += GRUP) {
+    const grup = plan.slice(i, i + GRUP);
+    const sahneler = await sahneYaz(grup, arastirma, ozet, i + 1);
     tumSahneler = tumSahneler.concat(sahneler);
-    ozet += `${bolum.ad}: ${sahneler.map(s => s.anlatim).join(" ").slice(0, 150)}... `;
-    console.log(`  ${bolum.ad} -> ${sahneler.length} sahne`);
+    ozet += sahneler.map(s => s.anlatim).join(" ").slice(0, 400) + " ";
+    console.log(`  Sahne ${i + 1}-${i + grup.length} yazildi (${sahneler.length})`);
   }
 
-  const baslikRes = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content: `"${bitki}" hakkindaki Anadolu bitki belgeseli icin merak uyandiran Turkce YouTube basligi yaz. SADECE basligi yaz.` }],
-      temperature: 0.9, max_tokens: 60
-    })
-  });
-  const baslik = ((await baslikRes.json()).choices?.[0]?.message?.content ?? `${bitki} Belgeseli`).trim().replace(/^"|"$/g, "");
+  const baslik = (await cagir(MODEL, [{ role: "user", content: `"${bitki}" uzerine National Geographic tarzi bir belgesel icin merak uyandiran, sik bir Turkce YouTube basligi yaz. SADECE basligi yaz, tirnak koyma.` }], { temperature: 0.9, max_tokens: 60 })).trim().replace(/^"|"$/g, "");
 
   fs.writeFileSync("senaryo.json", JSON.stringify({ baslik, bitki, arastirma, sahneler: tumSahneler }, null, 2), "utf8");
   console.log(`\nTamam! TOPLAM ${tumSahneler.length} sahne. Baslik: ${baslik}`);
