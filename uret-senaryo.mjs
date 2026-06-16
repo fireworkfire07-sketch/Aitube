@@ -4,7 +4,7 @@
 
 import fs from "node:fs";
 
-const MODEL = "gpt-4o-mini";
+const MODEL = "gpt-4o";
 const API_KEY = process.env.OPENAI_API_KEY;
 
 if (!API_KEY) {
@@ -45,9 +45,11 @@ Senaryo su bolumleri SIRAYLA, akici gecislerle islesin (basliklari yazma):
 
 SAGLIK DILI KURALI: "tedavi eder, iyilestirir, sifa" gibi kesin iddialar KULLANMA. "destekleyebilir, yardimci olabilir" gibi temkinli dil kullan.
 
-Senaryoyu 40-46 sahneye bol. Her sahne:
-- "anlatim": ~45-55 kelimelik, akici, sicak Turkce anlatim (seslendirilecek).
-- "gorsel": o sahneye uygun, INGILIZCE, sinematik belgesel tarzi gorsel betimleme. Gorselde yazi OLMASIN.
+COK ONEMLI UZUNLUK KURALI: Senaryo EN AZ 40, ideal olarak 44 sahneden olusmali. Sahne sayisini ASLA kisa kesme. Her bolumu birden fazla sahneye yay. 12-15 dakikalik bir videoyu doldurmak icin yeterince detayli ve uzun olmali. 40'tan az sahne KABUL EDILMEZ.
+
+Her sahne:
+- "anlatim": ~45-55 kelimelik, akici, sicak, merak uyandiran Turkce anlatim (seslendirilecek).
+- "gorsel": o sahneye uygun, INGILIZCE, sinematik belgesel tarzi gorsel betimleme (image prompt). Gorselde yazi OLMASIN. Gercekci, tutarli, sicak isikli belgesel estetigi.
 
 SADECE su JSON formatinda yanit ver:
 {
@@ -72,7 +74,7 @@ async function openaiCagir(deneme = 1) {
         { role: "user", content: kullaniciMesaji }
       ],
       temperature: 0.8,
-      max_tokens: 8000,
+      max_tokens: 16000,
       response_format: { type: "json_object" }
     })
   });
