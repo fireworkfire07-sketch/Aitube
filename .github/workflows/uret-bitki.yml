@@ -1,0 +1,30 @@
+name: Bitki Senaryo Uret
+
+on:
+  workflow_dispatch:
+
+jobs:
+  senaryo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repoyu al
+        uses: actions/checkout@v4
+
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Senaryo uret
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node uret-senaryo.mjs
+
+      - name: Senaryoyu kaydet (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: senaryo
+          path: |
+            senaryo.json
+            ham_cikti.txt
+          if-no-files-found: warn
