@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  senaryo:
+  uret:
     runs-on: ubuntu-latest
     steps:
       - name: Repoyu al
@@ -20,11 +20,16 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node uret-senaryo.mjs
 
-      - name: Senaryoyu kaydet (artifact)
+      - name: Gorselleri uret
+        env:
+          POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
+        run: node gorsel-uret.mjs
+
+      - name: Sonuclari kaydet (artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: senaryo
+          name: bitki-cikti
           path: |
             senaryo.json
-            ham_cikti.txt
+            gorseller/
           if-no-files-found: warn
