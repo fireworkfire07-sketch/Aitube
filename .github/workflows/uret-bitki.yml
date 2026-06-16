@@ -1,4 +1,4 @@
-name: Bitki ğSenaryo Uret
+name: Bitki Senaryo Uret
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
 
       - name: Gorselleri uret
         env:
-          POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node gorsel-uret.mjs
 
       - name: Sonuclari kaydet (artifact)
