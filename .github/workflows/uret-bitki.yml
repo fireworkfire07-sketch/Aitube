@@ -45,3 +45,15 @@ jobs:
             senaryo.json
             video.mp4
           if-no-files-found: warn
+          
+      - name: googleapis kur
+        run: npm install googleapis
+
+      - name: YouTube'a yukle
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_PRIVACY: ${{ secrets.YT_PRIVACY }}
+        run: node youtube-yukle.mjs
+
