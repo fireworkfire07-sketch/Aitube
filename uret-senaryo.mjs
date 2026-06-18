@@ -13,6 +13,13 @@ const bitki = bitkiler.find(b=>!islenmis.includes(b));
 if(!bitki){console.log("Tum bitkiler islendi.");process.exit(0);}
 console.log("Secilen bitki:", bitki, `(${islenmis.length+1}/${bitkiler.length})`);
 
+// Hassas konular icin guvenlik cercevesi (kenevir/kannabis vb.)
+const HASSAS = /kenevir|kannabis|cannabis|esrar|marijuana|haşhaş|hashas|afyon/i.test(bitki);
+const HASSAS_ARASTIRMA = HASSAS ? `
+ONEMLI CERCEVE: Bu konu hassastir. SADECE tarihsel, botanik, endustriyel (lif, tekstil, kagit, halat, biyoplastik, tohum, yag), cevresel ve bilimsel/akademik arastirma boyutuyla ilgilen. Uyusturucu/keyif amacli kullanim, psikoaktif etki anlatimi, yetistirme/uretim/elde etme teknikleri KESINLIKLE KONU DISI. Yasal duzenlemeleri tarafsiz aktar (savunuculuk yok). Olgusal ve notr ol.` : "";
+const HASSAS_YAZIM = HASSAS ? `
+- HASSAS KONU KURALI: Tarafsizlik sart. Savunuculuk, ozendirme, keyif amacli kullanim, psikoaktif etki tarifi YOK. Yetistirme/uretim/elde etme tarifi YOK. Sadece tarih, bilim, sanayi (lif/tekstil/kagit), cevre ve kultur. Yasal gelismeleri notr aktar.` : "";
+
 async function cagir(model, messages, opts={}){
   const res = await fetch("https://api.openai.com/v1/chat/completions",{
     method:"POST",
@@ -28,7 +35,7 @@ function jparse(t){ return JSON.parse(t.replace(/```json/gi,"").replace(/```/g,"
 async function arastir(){
   try{
     return await cagir(ARASTIRMA_MODEL,[
-      {role:"user",content:`"${bitki}" hakkinda derin arastirma yap. SOMUT, az bilinen detaylar: botanik; tarih (hangi uygarlik, yuzyil, arkeolojik bulgu, efsane, ticaret yolu); bilim (etken madde kimyasal isimleriyle, calismalar, mekanizma); Anadolu kulturu (yore, gelenek, inanis); dunya mutfagi; sasirtici gercekler/hikayeler. Genel laf degil; SPESIFIK isim, tarih, yer, rakam ver. Turkce.`}
+      {role:"user",content:`"${bitki}" hakkinda derin arastirma yap. SOMUT, az bilinen detaylar: botanik; tarih (hangi uygarlik, yuzyil, arkeolojik bulgu, efsane, ticaret yolu); bilim (etken madde kimyasal isimleriyle, calismalar, mekanizma); Anadolu kulturu (yore, gelenek, inanis); dunya mutfagi; sasirtici gercekler/hikayeler. Genel laf degil; SPESIFIK isim, tarih, yer, rakam ver. Turkce.${HASSAS_ARASTIRMA}`}
     ],{web_search_options:{}});
   }catch(e){console.log("Arastirma atlandi:",e.message);return "";}
 }
@@ -62,7 +69,7 @@ KESIN KURALLAR:
 - Cumle ritmi degissin: kisa-vurucu ve uzun-akici cumleleri karistir.
 - Duyusal detay kullan (koku, doku, renk, ses, isik).
 - Arastirmadaki SOMUT olgulari (isim, tarih, yer, rakam, kimyasal) isle; genel dolgu YASAK.
-- Saglik dili: "tedavi/sifa" kesin iddia YOK; "calismalar gosteriyor, destekleyebilir".`},
+- Saglik dili: "tedavi/sifa" kesin iddia YOK; "calismalar gosteriyor, destekleyebilir".${HASSAS_YAZIM}`},
     {role:"user",content:`Bitki: "${bitki}"
 ARASTIRMA (tek gercek kaynagin):
 ${arastirma.slice(0,5000)}
@@ -134,5 +141,7 @@ SADECE JSON: { "anlatimlar": ["duzeltilmis 1","duzeltilmis 2"] } (sira ayni)`}
   const baslik=(await cagir(MODEL,[{role:"user",content:`"${bitki}" uzerine National Geographic tarzi belgesel icin merak uyandiran sik bir Turkce YouTube basligi yaz. SADECE basligi yaz, tirnak yok.`}],{temperature:0.9,max_tokens:60})).trim().replace(/^"|"$/g,"");
 
   fs.writeFileSync("senaryo.json",JSON.stringify({baslik,bitki,arastirma,sahneler:tumSahneler},null,2),"utf8");
+  fs.appendFileSync("islenmis.txt", bitki + "\n", "utf8");
   console.log(`\nTamam! TOPLAM ${tumSahneler.length} sahne. Baslik: ${baslik}`);
+  console.log(`islenmis.txt guncellendi: "${bitki}" eklendi.`);
 })();
