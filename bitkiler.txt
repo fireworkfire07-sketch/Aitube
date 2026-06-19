@@ -96,4 +96,45 @@ Buğday
 Patates
 Domates
 Acı biber
+Abanoz
+Maun
+Okaliptüs
+Akasya
+Hurma
+Hindistan cevizi
+Keçiboynuzu
+Demirhindi
+Kauçuk ağacı
+Mantar meşesi
+Kafur ağacı
+Banyan ağacı
+Joshua ağacı
+Maymun bulmacası ağacı
+Ginseng
+Aloe vera
+Kediotu
+Yüksükotu
+Baldıran
+Banotu
+Kurtboğan
+Sarı kantaron
+Şeytan tersi
+Kimyon
+Anason
+Çin anasonu
+Hardal
+Sumak
+Yenibahar
+Mavi nilüfer
+Yaşayan taşlar
+Boğan incir
+Şeker kamışı
+Pamuk
+Keten
+Pirinç
+Mısır
+Kinoa
+Amarant
+Manyok
+
 
