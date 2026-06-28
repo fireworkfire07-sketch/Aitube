@@ -6,7 +6,8 @@ import edge_tts
 API_KEY = os.environ["GROQ_API_KEY"]
 OUTPUT  = Path("output"); OUTPUT.mkdir(exist_ok=True)
 PROCESSED = Path("islenmis.txt")
-TOPICS    = Path("topics.txt")
+TOPICS    = Path("bitkiler.txt")
+
 
 STYLE = "minimalist black ink stick figure line drawing on aged cream parchment paper, hand-drawn doodle style, simple, no color, vintage textured background, lots of empty space, 16:9, no text"
 
