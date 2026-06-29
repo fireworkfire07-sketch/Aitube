@@ -9,7 +9,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install requests edge-tts faster-whisper google-api-python-client google-auth
+      - run: pip install requests edge-tts faster-whisper google-api-python-client google-auth groq
       - run: sudo apt-get install -y ffmpeg
       - run: python main.py
         env:
